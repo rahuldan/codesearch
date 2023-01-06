@@ -1,0 +1,9 @@
+postgres:
+  db_name: postgres
+  host: 172.19.0.2
+  port: 5432
+model:
+  code_embedding: text-embedding-ada-002
+  text_embedding: text-embedding-ada-002
+  dimension: 1536
+  num_nearest_neighbours: 5

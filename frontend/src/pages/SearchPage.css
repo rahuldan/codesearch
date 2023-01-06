@@ -1,0 +1,28 @@
+.search-container {
+  /* background-color: lightblue; */
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.searchbar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  column-gap: 8px;
+}
+
+.results-container {
+  display: flex;
+  flex-direction: column;
+  padding-left: 25%;
+  padding-right: 25%;
+}
+
+.results-title {
+  display: flex;
+  flex-direction: column;
+  /* background-color: bisque; */
+  align-items: flex-start;
+  font-size: large;
+}

@@ -1,0 +1,87 @@
+version: "3.8"
+
+services:
+  db:
+    container_name: postgres_container
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_DB: postgres_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      PGDATA: /var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      my_network:
+        ipv4_address: 172.19.0.2
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  pgadmin:
+    container_name: pgadmin4_container
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_LISTEN_PORT: 80
+    ports:
+      - "8080:80"
+    networks:
+      my_network:
+        ipv4_address: 172.19.0.3
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+
+  backend:
+    build: ./backend
+    container_name: backend_container
+    # restart: always
+    ports:
+      - "5000:5000"
+    networks:
+      my_network:
+        ipv4_address: 172.19.0.4
+    volumes:
+      - ./backend:/app
+      - /home:/mnt/home:ro
+    stdin_open: true
+    tty: true
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  
+  frontend:
+    build: ./frontend
+    container_name: frontend_container
+    restart: always
+    ports:
+      - "4000:4000"
+    networks:
+      my_network:
+        ipv4_address: 172.19.0.5
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    stdin_open: true
+    tty: true
+
+volumes:
+  db-data:
+  pgadmin-data:
+
+networks:
+  my_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.19.0.0/16
+          gateway: 172.19.0.1
