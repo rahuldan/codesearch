@@ -1,5 +1,11 @@
+# CodeSearch
+
+<p align="center">
+<img src="codesearch.gif" width="70%">
+</p>
+
 # Introduction
-Codesearch is natural language query tool for codebases. It uses the OpenAI API for getting the embedding vectors and indexes them using the FAISS library. When you query the system, it matches the query vector to the top 5 results and display in a web-based UI.
+CodeSearch is natural language query tool for codebases. It uses the OpenAI API for getting the embedding vectors and indexes them using the FAISS library. When you query the system, it matches the query vector to the top 5 results and display in a web-based UI.
 
 When you enter a project path, the tool searches for all the code files inside the project (including subdirectories), generates its Abstract Syntax Tree (using libCST library), indexes each of the function, along with its filepath, class name, function name, line number and embedding vector. It then stores all of this in a local PostgreSQL database.
 
