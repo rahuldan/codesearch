@@ -18,8 +18,11 @@ class SimpleCST(libcst.CSTVisitor):
         self.func_list = []
         self.module = None
 
-    def set_module(self, module):
-        self.module = module
+    def set_module(self, filepath):
+        with open(filepath, "r") as f:
+            self.module = libcst.parse_module(f.read())
+
+        self.wrapper = libcst.metadata.MetadataWrapper(self.module)
 
     def reset_func_name(self):
         self.func_list = []
@@ -55,11 +58,11 @@ class SimpleCST(libcst.CSTVisitor):
 
 
 if __name__ == "__main__":
-    with open("/home/foneme/Desktop/codesearch/backend/main.py", "r") as f:
-        module = libcst.parse_module(f.read())
+    # with open("/home/foneme/Desktop/codesearch/temp_proj/temp.py", "r") as f:
+    #     module = libcst.parse_module(f.read())
 
     simple_cst = SimpleCST()
-    simple_cst.set_module(module)
-    wrapper = libcst.metadata.MetadataWrapper(module)
-    result = wrapper.visit(simple_cst)
+    simple_cst.set_module(filepath="/home/foneme/Desktop/codesearch/temp_proj/temp.py")
+    # wrapper = libcst.metadata.MetadataWrapper(module)
+    result = simple_cst.wrapper.visit(simple_cst)
     print(simple_cst.func_list)

@@ -23,6 +23,10 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Backend
+
+/backend/codesearch/utils/treesitter/*
+
 temp.txt
 temp2.txt
 /temp_proj

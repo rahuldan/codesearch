@@ -12,6 +12,10 @@ RUN wget \
     && bash Miniconda3-latest-Linux-x86_64.sh -b \
     && rm -f Miniconda3-latest-Linux-x86_64.sh 
 
+RUN apt-get update && \
+    apt-get install -y git && \
+    apt-get install -y build-essential
+
 RUN conda --version
 # RUN conda activate base
 RUN echo $CONDA_PREFIX
@@ -27,6 +31,21 @@ RUN conda install -c conda-forge faiss
 # RUN conda list | grep cuda
 
 COPY . .
+
+RUN gcc --version
+
+RUN git --version
+
+RUN cd ./codesearch/utils/treesitter
+# RUN mkdir treesitter
+# RUN cd treesitter
+
+RUN git clone https://github.com/tree-sitter/tree-sitter-go
+RUN git clone https://github.com/tree-sitter/tree-sitter-javascript
+RUN git clone https://github.com/tree-sitter/tree-sitter-python
+
+RUN cd ../../../
+
 
 EXPOSE 5000
 
