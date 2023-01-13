@@ -11,7 +11,7 @@ When you enter a project path, the tool searches for all the code files inside t
 
 - **Fast Setup**: We have Docker support to quickly setup a working environment
 - **Interactive UI**: We have created a interactive web-based UI for searching
-- **Language Support**: Currently we support Python only. Adding new languages shortly
+- **Language Support**: Currently we support Python and Javascript. Adding new languages shortly
 - **GPU and CPU Support**: The tool has support for GPU as well as CPU
 
 # Setup
