@@ -7,17 +7,19 @@
 # Introduction
 CodeSearch is natural language query tool for codebases. It uses the OpenAI API for getting the embedding vectors and indexes them using the FAISS library. When you query the system, it matches the query vector to the top 5 results and display in a web-based UI.
 
-When you enter a project path, the tool searches for all the code files inside the project (including subdirectories), generates its Abstract Syntax Tree (using libCST library), indexes each of the function, along with its filepath, class name, function name, line number and embedding vector. It then stores all of this in a local PostgreSQL database.
+When you enter a project path or Github URL, the tool searches for all the code files inside the project (including subdirectories), generates its Abstract Syntax Tree (using libCST or TreeSitter library), indexes each of the function, along with its filepath, class name, function name, line number and embedding vector. It then stores all of this in a local PostgreSQL database. In case of Github repo, it first clones the repo and then does the indexing.
 
 - **Fast Setup**: We have Docker support to quickly setup a working environment
 - **Interactive UI**: We have created a interactive web-based UI for searching
 - **Language Support**: Currently we support Python and Javascript. Adding new languages shortly
 - **GPU and CPU Support**: The tool has support for GPU as well as CPU
+- **Github Support**: Directly index and query a Github repo
+- **Multiple Project Support**: Index and save multiple projects at a time
 
 # Setup
 
 - Get your OpenAI API key from [link](https://beta.openai.com/)
-- Rename the `/backend/codesearch/.env.sample` to `/backend/codesearch/.env` and add your API key in it
+- Rename the `/backend/codesearch/.env.sample` to `/backend/codesearch/.env` and add your API key & Org ID in it
 
 ### CPU
 
