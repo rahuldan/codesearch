@@ -6,3 +6,4 @@ openai==0.25.0
 psycopg2-binary==2.9.5
 python-dotenv==0.21.0
 tree_sitter==0.20.1
+validators==0.20.0

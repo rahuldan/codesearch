@@ -26,6 +26,7 @@ yarn-error.log*
 # Backend
 
 /backend/codesearch/utils/treesitter/*
+/backend/gitrepos/*
 
 temp.txt
 temp2.txt

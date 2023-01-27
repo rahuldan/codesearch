@@ -1,90 +1,17 @@
 import React from "react";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
-import { styled } from "@mui/material/styles";
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogContentText from "@mui/material/DialogContentText";
-import DialogTitle from "@mui/material/DialogTitle";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
-import Paper from "@mui/material/Paper";
 import IconButton from "@mui/material/IconButton";
-import PropTypes from "prop-types";
-import Box from "@mui/material/Box";
-import Collapse from "@mui/material/Collapse";
-import Typography from "@mui/material/Typography";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
-import { useState, useEffect, useLayoutEffect } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
+import LinearProgress from "@mui/material/LinearProgress";
+import Snackbar from "@mui/material/Snackbar";
+import CloseIcon from "@mui/icons-material/Close";
 
 import Navbar from "../components/Navbar";
+import ProjectDialog from "../components/ProjectDialog";
+import ResultsTable from "../components/ResultsTable";
 import "./SearchPage.css";
-import { fontFamily } from "@mui/system";
-
-function Row(props) {
-  const { row } = props;
-  const [open, setOpen] = useState(false);
-
-  return (
-    <React.Fragment>
-      <TableRow sx={{ "& > *": { borderBottom: "unset" } }}>
-        <TableCell width="1%">
-          <IconButton
-            aria-label="expand row"
-            size="small"
-            onClick={() => setOpen(!open)}
-          >
-            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-          </IconButton>
-        </TableCell>
-        <TableCell align="center">{row.class_name}</TableCell>
-        <TableCell align="center">{row.func_name}</TableCell>
-      </TableRow>
-      <TableRow>
-        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
-          <Collapse in={open} timeout="auto" unmountOnExit>
-            <Box sx={{ margin: 1 }}>
-              <Table size="small" aria-label="purchases">
-                <TableBody>
-                  {row.desc.map((descRow) => (
-                    <TableRow key={descRow.id}>
-                      <TableCell component="th" scope="row">
-                        {descRow.name}
-                      </TableCell>
-                      <TableCell>{descRow.value}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </Box>
-          </Collapse>
-        </TableCell>
-      </TableRow>
-    </React.Fragment>
-  );
-}
-
-Row.propTypes = {
-  row: PropTypes.shape({
-    id: PropTypes.number,
-    class_name: PropTypes.string,
-    func_name: PropTypes.string,
-    desc: PropTypes.arrayOf(
-      PropTypes.shape({
-        id: PropTypes.number,
-        name: PropTypes.string,
-        line_number: PropTypes.number,
-      })
-    ),
-  }),
-};
 
 function createData(id, class_name, func_name, file_path, line_number) {
   return {
@@ -109,10 +36,26 @@ function createData(id, class_name, func_name, file_path, line_number) {
 export default function SearchPage() {
   const baseURL = "localhost";
 
-  const [open, setOpen] = useState(false);
-  const [path, setPath] = useState("");
+  const [openDialog, setOpenDialog] = useState(false);
   const [query, setQuery] = useState("");
   const [rows, setRows] = useState([]);
+  const [project, setProject] = useState("None");
+  const [urlValue, setUrlValue] = useState("");
+  const [loadingbar, setLoadingbar] = useState(false);
+  const [openAlert, setOpenAlert] = useState(false);
+  const [options, setOptions] = useState(["None"]);
+
+  useEffect(() => {
+    getProjects();
+  }, []);
+
+  useEffect(() => {
+    if (project != "None") {
+      if (typeof project !== "undefined") {
+        setUrlValue(project);
+      }
+    }
+  }, [project]);
 
   const updateRows = (results) => {
     if (Object.keys(results).length > 0) {
@@ -133,17 +76,50 @@ export default function SearchPage() {
     }
   };
 
-  const handleClickOpen = () => {
-    setOpen(true);
+  const handleOpenDialog = () => {
+    setOpenDialog(true);
+    getProjects();
   };
 
-  const handleClose = () => {
-    setOpen(false);
+  const handleCloseDialog = (newValue) => {
+    setOpenDialog(false);
+
+    if (newValue) {
+      setProject(newValue);
+    }
   };
+
+  const handleCloseAlert = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+
+    setOpenAlert(false);
+  };
+
+  const actionAlert = (
+    <React.Fragment>
+      <IconButton
+        size="small"
+        aria-label="close"
+        color="inherit"
+        onClick={handleCloseAlert}
+      >
+        <CloseIcon fontSize="small" />
+      </IconButton>
+    </React.Fragment>
+  );
 
   const handleSearch = () => {
     var bodyFormData = new FormData();
+
     bodyFormData.append("query", query);
+    bodyFormData.append("url", urlValue);
+
+    if (urlValue.length == 0 || query.length == 0) {
+      setOpenAlert(true);
+      return;
+    }
 
     axios({
       method: "post",
@@ -160,14 +136,28 @@ export default function SearchPage() {
   };
 
   const handleQueryChange = (e) => {
-    e.persist();
+    e.persist(); // Remove this if not needed
     setQuery(e.target.value);
   };
 
+  const handleURLChange = (e) => {
+    // e.persist();
+    if (typeof e.target.value !== "undefined") {
+      setUrlValue(e.target.value);
+    }
+  };
+
   const handleIndex = () => {
-    setOpen(false);
+    setOpenDialog(false);
     var bodyFormData = new FormData();
-    bodyFormData.append("project_path", path);
+    bodyFormData.append("url", urlValue);
+
+    if (urlValue.length == 0) {
+      setOpenAlert(true);
+      return;
+    }
+
+    setLoadingbar(true);
 
     axios({
       method: "post",
@@ -176,16 +166,32 @@ export default function SearchPage() {
       headers: { "Content-Type": "text/html; charset=utf-8" },
     })
       .then(function (response) {
+        setLoadingbar(false);
+      })
+      .catch(function (response) {
         console.log(response);
+        setLoadingbar(false);
+      });
+  };
+
+  const getProjects = () => {
+    axios({
+      method: "get",
+      url: `http://${baseURL}:5000/`,
+      headers: { "Content-Type": "text/html; charset=utf-8" },
+    })
+      .then(function (response) {
+        var newOptions = ["None"];
+        var dictKey = Object.keys(response.data);
+
+        for (var i = 0; i < dictKey.length; i++) {
+          newOptions.push(response.data[dictKey[i]]);
+        }
+        setOptions(newOptions);
       })
       .catch(function (response) {
         console.log(response);
       });
-  };
-
-  const handlePathChange = (e) => {
-    e.persist();
-    setPath(e.target.value);
   };
 
   return (
@@ -200,96 +206,76 @@ export default function SearchPage() {
             defaultValue=""
             onChange={handleQueryChange}
           />
-          <Button
-            style={{ textTransform: "none" }}
-            variant="contained"
-            className="button"
-            onClick={handleSearch}
-          >
-            Search
-          </Button>
-          <Button
-            style={{ textTransform: "none" }}
-            variant="outlined"
-            className="button"
-            onClick={handleClickOpen}
-          >
-            Index Project
-          </Button>
+          <div className="searchbar-index">
+            <TextField
+              style={{ width: "342px" }} // This odd width value is to accomodate for the column padding of 8px
+              id="outlined"
+              label="Github Repo URL or Local Repo Path"
+              defaultValue=""
+              onChange={handleURLChange}
+              required={true}
+              value={urlValue}
+            />
+            <Button
+              style={{ textTransform: "none", width: "150px" }}
+              variant="outlined"
+              className="button"
+              onClick={handleIndex}
+            >
+              Index Project
+            </Button>
+          </div>
+          <div className="searchbar-button">
+            <Button
+              style={{ textTransform: "none", width: "150px" }}
+              variant="contained"
+              className="button"
+              onClick={handleSearch}
+            >
+              Search
+            </Button>
+            <Button
+              style={{ textTransform: "none", width: "150px" }}
+              variant="outlined"
+              className="button"
+              onClick={handleOpenDialog}
+            >
+              Select Project
+            </Button>
+          </div>
         </div>
 
-        <Dialog open={open} onClose={handleClose}>
-          <DialogTitle>Index a Project</DialogTitle>
-          <DialogContent>
-            <DialogContentText>
-              To index a new project or re-index an existing project, please
-              enter the path to the project in the text field below.
-            </DialogContentText>
-            <TextField
-              autoFocus
-              margin="dense"
-              id="name"
-              label="Path to Project"
-              type="text"
-              fullWidth
-              variant="standard"
-              onChange={handlePathChange}
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleClose}>Cancel</Button>
-            <Button onClick={handleIndex}>Index</Button>
-          </DialogActions>
-        </Dialog>
+        <ProjectDialog
+          id="project-menu"
+          keepMounted
+          open={openDialog}
+          onClose={handleCloseDialog}
+          value={project}
+          options={options}
+          getProjects={getProjects}
+          baseURL={baseURL}
+        />
 
-        {Object.keys(rows).length > 0 ? (
-          <div className="results-container">
-            <p className="results-title">Search Results</p>
-            <TableContainer component={Paper}>
-              <Table sx={{ minWidth: 650 }} aria-label="simple table">
-                <TableHead>
-                  <TableRow>
-                    <TableCell />
-                    <TableCell style={{ fontWeight: "bold" }} align="center">
-                      Class Name
-                    </TableCell>
-                    <TableCell style={{ fontWeight: "bold" }} align="center">
-                      Function Name
-                    </TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {rows.map((row) => (
-                    <Row key={row.id} row={row} />
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
+        {loadingbar == true ? (
+          <div className="loadingbar">
+            <LinearProgress style={{ width: "100%" }} />
           </div>
         ) : (
-          <div className="results-container" style={{ opacity: "0" }}>
-            <p className="results-title">Search Results</p>
-            <TableContainer component={Paper}>
-              <Table sx={{ minWidth: 650 }} aria-label="simple table">
-                <TableHead>
-                  <TableRow>
-                    <TableCell />
-                    <TableCell style={{ fontWeight: "bold" }} align="center">
-                      Class Name
-                    </TableCell>
-                    <TableCell style={{ fontWeight: "bold" }} align="center">
-                      Function Name
-                    </TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {rows.map((row) => (
-                    <Row key={row.id} row={row} />
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </div>
+          <div></div>
+        )}
+
+        <Snackbar
+          open={openAlert}
+          autoHideDuration={6000}
+          onClose={handleCloseAlert}
+          message="Input not specified"
+          action={actionAlert}
+        />
+
+        {Object.keys(rows).length > 0 ? (
+          <ResultsTable rows={rows} opacity="1" />
+        ) : (
+          <ResultsTable rows={rows} opacity="0" />
         )}
       </div>
     </div>
